@@ -1,9 +1,9 @@
-import React from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { useEventContext } from '../../hooks/useEventContext';
+import React from "react";
+import { View, Text, FlatList, StyleSheet } from "react-native";
+import { useEventContext } from "../../hooks/useEventContext";
 
 const EventList = ({ selectedDate }) => {
-  const { events } = useEventContext(); // Accedemos al estado global de eventos
+  const { events } = useEventContext(); // Access the global events state
 
   return (
     <View style={styles.container}>
@@ -39,37 +39,37 @@ const styles = StyleSheet.create({
   },
   header: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1D1A1B',
+    fontWeight: "bold",
+    color: "#1D1A1B",
     marginBottom: 10,
   },
   eventContainer: {
-    backgroundColor: '#F7F7F7',
+    backgroundColor: "#F7F7F7",
     padding: 10,
     borderRadius: 8,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#CC1100',
+    borderColor: "#CC1100",
   },
   eventName: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#CC1100',
+    fontWeight: "bold",
+    color: "#CC1100",
   },
   eventType: {
     fontSize: 14,
-    color: '#1D1A1B',
+    color: "#1D1A1B",
   },
   noEvents: {
     fontSize: 16,
-    color: '#999',
-    textAlign: 'center',
+    color: "#999",
+    textAlign: "center",
     marginTop: 10,
   },
   noDate: {
     fontSize: 16,
-    color: '#999',
-    textAlign: 'center',
+    color: "#999",
+    textAlign: "center",
     marginTop: 20,
   },
 });

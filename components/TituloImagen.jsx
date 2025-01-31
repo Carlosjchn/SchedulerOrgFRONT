@@ -14,7 +14,6 @@ const styles = StyleSheet.create({
   container: {
     alignItems: "center",
     justifyContent: "center",
-    marginVertical: 20,
   },
   title: {
     fontSize: 20,
@@ -25,7 +24,6 @@ const styles = StyleSheet.create({
   image: {
     width: 250,
     height: 200,
-    backgroundColor: "#E5E5E5",
     borderRadius: 10,
   },
 });
