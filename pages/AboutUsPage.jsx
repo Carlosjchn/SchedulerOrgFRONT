@@ -4,10 +4,7 @@ import { View, Text, StyleSheet } from 'react-native';
 export function AboutUs() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Acerca de Nosotros</Text>
-      <Text style={styles.description}>
-        Aplicacion para organizar tu tiempo de manera eficiente. Creada por el equipo de desarrollo de la empresa.
-      </Text>
+      <CalendarComponent />
     </View>
   );
 }

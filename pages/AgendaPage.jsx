@@ -1,9 +1,9 @@
 import React from "react";
 import { StyleSheet, SafeAreaView } from "react-native";
 import Agenda from "../components/Agenda.jsx";
-import { EventProvider } from "../hooks/useEventContext";
+import { EventProvider } from "../hooks/useEventContext.jsx";
 
-const PageCalendar = () => {
+const PageAgenda = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <EventProvider>
@@ -24,4 +24,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PageCalendar;
+export default PageAgenda;

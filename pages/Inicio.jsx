@@ -23,11 +23,7 @@ const InitPage = () => {
         <View style={styles.section}>
           <HorizontalComponent />
         </View>
-
-        {/* Calendar Section */}
-        <View style={styles.section}>
-          <CalendarComponent />
-        </View>
+        
       </ScrollView>
     </SafeAreaView>
   );
