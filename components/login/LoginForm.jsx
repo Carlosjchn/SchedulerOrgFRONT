@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   TextInput,
@@ -7,43 +7,62 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { useAuth } from "../hooks/useAuthContext";
-
+import { useAuth } from "../../hooks/useAuthContext";
+import { useTheme } from '../../hooks/useThemeContext';
+import { lightTheme, darkTheme } from '../../config/theme';
 
 const LoginForm = () => {
   const navigation = useNavigation();
-  const { login, loading, error } = useAuth();
+  const { login, loading, error, user } = useAuth();
+  const { isDarkMode } = useTheme();
+  const theme = isDarkMode ? darkTheme : lightTheme;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  useEffect(() => {
+    if (user?.token) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Inicio' }],
+      });
+    }
+  }, [user, navigation]);
+
   const handleLogin = async () => {
-    const success = await login(email, password);
-    if (success) {
-      navigation.navigate('Inicio');
+    if (!email || !password) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+    
+    try {
+      await login(email, password);
+    } catch (err) {
+      Alert.alert('Error', err.message || 'Login failed');
     }
   };
 
   return (
     <ScrollView
-      contentContainerStyle={styles.container}
+      contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}
       keyboardShouldPersistTaps="handled"
     >
-      <View style={styles.formContainer}>
+      <View style={[styles.formContainer, { backgroundColor: theme.card }]}>
         <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#666"
+          style={[styles.input, { backgroundColor: theme.input, color: theme.text, borderColor: theme.border }]}
+          placeholder="Usuario o Email"
+          placeholderTextColor={theme.subText}
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
         />
         <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor="#666"
+          style={[styles.input, { backgroundColor: theme.input, color: theme.text, borderColor: theme.border }]}
+          placeholder="Constraseña"
+          placeholderTextColor={theme.subText}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -51,22 +70,22 @@ const LoginForm = () => {
       </View>
 
       <View style={{ alignItems: "center" }}>
-        {error && <Text style={styles.errorText}>{error}</Text>}
+        {error && <Text style={[styles.errorText, { color: theme.error }]}>{error}</Text>}
         <TouchableOpacity 
-          style={[styles.button, loading && styles.buttonDisabled]} 
+          style={[styles.button, loading && styles.buttonDisabled, { backgroundColor: loading ? theme.disabled : theme.primary }]} 
           onPress={handleLogin}
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={theme.cardText} />
           ) : (
-            <Text style={styles.buttonText}>Iniciar Sesión</Text>
+            <Text style={[styles.buttonText, { color: theme.cardText }]}>Iniciar Sesión</Text>
           )}
         </TouchableOpacity>
         <View style={styles.registerContainer}>
-          <Text style={styles.registerText}>¿No tienes cuenta? </Text>
+          <Text style={[styles.registerText, { color: theme.subText }]}>¿No tienes cuenta? </Text>
           <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-            <Text style={styles.registerLink}>Registrate</Text>
+            <Text style={[styles.registerLink, { color: theme.primary }]}>Registrate</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -76,12 +95,11 @@ const LoginForm = () => {
 
 const styles = StyleSheet.create({
   errorText: {
-    color: '#CC1100',
     marginBottom: 10,
     textAlign: 'center',
   },
   buttonDisabled: {
-    backgroundColor: '#999',
+    opacity: 0.7,
   },
   registerContainer: {
     flexDirection: 'row',
@@ -89,32 +107,20 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   registerText: {
-    color: '#666',
     fontSize: 14,
   },
   registerLink: {
-    color: '#e63f32',
     fontSize: 14,
     fontWeight: 'bold',
   },
   container: {
-    
     width: undefined,
     paddingTop: 20,
-    paddingHorizontal:10,
+    paddingHorizontal: 10,
     alignItems: "center",
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#CC1100",
-    textAlign: "center",
-    letterSpacing: 1,
   },
   formContainer: {
     flex: 1,
-    backgroundColor: "#fff",
-    
     padding: 15,
     borderRadius: 15,
     width: 300,
@@ -131,16 +137,12 @@ const styles = StyleSheet.create({
   input: {
     height: 55,
     borderWidth: 1.5,
-    borderColor: "#e0e0e0",
     borderRadius: 12,
     paddingHorizontal: 15,
     marginBottom: 10,
     fontSize: 16,
-    backgroundColor: "#fff",
-    color: "#333",
   },
   button: {
-    backgroundColor: "#CC1100",
     padding: 15,
     borderRadius: 12,
     alignItems: "center",
@@ -156,7 +158,6 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   buttonText: {
-    color: "#fff",
     fontSize: 18,
     fontWeight: "600",
   },

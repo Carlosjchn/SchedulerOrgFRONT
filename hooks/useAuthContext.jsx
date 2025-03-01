@@ -1,86 +1,68 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
-import { getBaseUrl, endpoints } from '../config/apiConfig';
+import { getBaseUrl } from '../config/apiConfig';
 
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    loadStoredAuth();
-  }, []);
-
-  const loadStoredAuth = async () => {
+  const checkAuthState = async () => {
     try {
-      const storedAuth = Platform.OS === 'web'
-        ? localStorage.getItem('auth')
-        : await AsyncStorage.getItem('auth');
-      
-      if (storedAuth) {
-        setUser(JSON.parse(storedAuth));
+      const tokenString = await AsyncStorage.getItem('userToken');
+      if (tokenString) {
+        const userData = JSON.parse(tokenString);
+        setUser({
+          token: userData.token,
+          nombre: userData.nombre
+        });
       }
     } catch (err) {
-      console.error('Error loading stored auth:', err);
+      console.error('Error checking auth state:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const storeAuth = async (authData) => {
-    try {
-      const authString = JSON.stringify(authData);
-      if (Platform.OS === 'web') {
-        localStorage.setItem('auth', authString);
-      } else {
-        await AsyncStorage.setItem('auth', authString);
-      }
-    } catch (err) {
-      console.error('Error storing auth:', err);
-    }
-  };
+  useEffect(() => {
+    checkAuthState();
+  }, []);
 
   const login = async (email, password) => {
     setLoading(true);
     setError(null);
     try {
-      const baseUrl = getBaseUrl();
-      const response = await fetch(`${baseUrl}/${endpoints.login}`, {
+      const response = await fetch(`${getBaseUrl()}/auth/login`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        mode: 'cors',
-        credentials: 'include',
         body: JSON.stringify({
           nombreoremail: email,
           contrasena: password,
         }),
       });
-
+  
       const data = await response.json();
-
+      console.log("Data: " + JSON.stringify(data));
       if (!response.ok) {
+        console.log("Data: " + JSON.stringify(data
+        ));
         throw new Error(data.message || 'Login failed');
       }
 
-      const authData = {
+      const userData = {
         token: data.token,
-        userName: data.userName,
-        userType: data.userType
+        nombre: data.userName || email
       };
-      setUser(authData);
-      await storeAuth(authData);
+      console.log("User Data: " + JSON.stringify(userData));  
+      await AsyncStorage.setItem('userToken', JSON.stringify(userData));
+      setUser(userData);
       return true;
     } catch (err) {
-      if (err.message === 'Network request failed') {
-        setError('Unable to connect to server. Please check your internet connection.');
-      } else {
-        setError(err.message || 'An error occurred during login');
-      }
+      setError(err.message);
       return false;
     } finally {
       setLoading(false);
@@ -88,53 +70,81 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    setUser(null);
     try {
-      if (Platform.OS === 'web') {
-        localStorage.removeItem('auth');
-      } else {
-        await AsyncStorage.removeItem('auth');
-      }
+      await AsyncStorage.removeItem('userToken');
+      setUser(null);
     } catch (err) {
-      console.error('Error removing stored auth:', err);
+      console.error('Error during logout:', err);
     }
   };
 
-  const register = async (nombre, email, contrasena, tipo) => {
+  const register = async (name, email, password) => {
     setLoading(true);
     setError(null);
     try {
-      const baseUrl = getBaseUrl();
-      const response = await fetch(`${baseUrl}/${endpoints.register}`, {
+      const requestBody = {
+        nombre: name,
+        email: email,
+        contrasena: password
+      };
+      console.log('Register Request:', JSON.stringify(requestBody, null, 2));
+
+      const response = await fetch(`${getBaseUrl()}/auth/register`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
-        body: JSON.stringify({
-          nombre,
-          email,
-          contrasena,
-          tipo
-        }),
+        body: JSON.stringify(requestBody),
       });
 
-      const data = await response.json();
+      const rawResponse = await response.text();
+      console.log('Raw Response:', rawResponse);
 
+      // Check if response is successful
       if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
+        throw new Error('Registration failed');
+      }
+
+      // If we got here, registration was successful
+      if (rawResponse.includes('Usuario registrado correctamente')) {
+        return true;
+      }
+
+      // Try to parse as JSON if it's not the success message
+      try {
+        const data = JSON.parse(rawResponse);
+        if (data.message) {
+          throw new Error(data.message);
+        }
+      } catch (parseError) {
+        // If not JSON and not success message, throw error
+        if (!rawResponse.includes('Usuario registrado correctamente')) {
+          throw new Error('Invalid response from server');
+        }
       }
 
       return true;
     } catch (err) {
-      setError(err.message || 'An error occurred during registration');
+      console.error('Register Error:', err);
+      setError(err.message);
       return false;
     } finally {
       setLoading(false);
     }
   };
 
+  const value = {
+    user,
+    loading,
+    error,
+    login,
+    logout,
+    register // Add register to the context value
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, logout, register }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

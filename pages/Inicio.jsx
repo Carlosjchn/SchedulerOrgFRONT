@@ -1,29 +1,44 @@
 import React from "react";
-import { ScrollView, SafeAreaView, StyleSheet, View } from "react-native";
-import CalendarComponent from "../components/calendar.jsx";
-import TituloComponent from "../components/TituloImagen.jsx";
-import DescriptionComponent from "../components/DescriptionView.jsx";
-import HorizontalComponent from "../components/ScrollHorizontal.jsx";
+import { ScrollView, SafeAreaView, StyleSheet } from "react-native";
+import { Card, Text, Divider } from "@rneui/themed";
+import TituloComponent from "../components/inicio/TituloImagen.jsx";
+import DescriptionComponent from "../components/inicio/DescriptionView.jsx";
+import HorizontalComponent from "../components/inicio/ScrollHorizontal.jsx";
+import AccionesRapidas from "../components/inicio/Acciones.jsx";
+import { useTheme } from '../hooks/useThemeContext';
+import { lightTheme, darkTheme } from '../config/theme';
 
 const InitPage = () => {
+  const { isDarkMode } = useTheme();
+  const theme = isDarkMode ? darkTheme : lightTheme;
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <ScrollView contentContainerStyle={styles.container}>
-        {/* Titulo Section */}
-        <View style={styles.titulo}>
+        <Card containerStyle={[styles.titleCard, { backgroundColor: theme.card }]}>
           <TituloComponent />
-        </View>
+        </Card>
 
-        {/* Description Section */}
-        <View style={styles.section}>
+        <Divider width={4} color={theme.divider} style={styles.divider} />
+
+        <Card containerStyle={[styles.sectionCard, { backgroundColor: theme.card }]}>
+          <Card.Title style={[styles.sectionTitle, { color: theme.text }]}>
+            Descripción
+          </Card.Title>
+          <Card.Divider width={2} color={theme.divider} />
           <DescriptionComponent />
-        </View>
+        </Card>
 
-        {/* Horizontal Scroll Section */}
-        <View style={styles.section}>
+        <Card containerStyle={[styles.sectionCard, { backgroundColor: theme.card }]}>
+          <Card.Title style={[styles.sectionTitle, { color: theme.text }]}>
+            Características
+          </Card.Title>
+          <Card.Divider width={2} color={theme.divider} />
           <HorizontalComponent />
-        </View>
-        
+        </Card>
+
+        <AccionesRapidas/>
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -31,48 +46,31 @@ const InitPage = () => {
 
 const styles = StyleSheet.create({
   safeArea: {
-    alignItems: "center",
     flex: 1,
-    backgroundColor: "#f7f7f7", // Fondo suave en toda la página
   },
   container: {
-    
-    paddingBottom: 10, // Reducir espacio inferior
+    paddingVertical: 15,
   },
-  titulo: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 10,
-    marginTop: 10,
-    marginHorizontal: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3, // Sombra suave
-  },
-  section: {
-    marginVertical: 10, // Menos espacio entre secciones
+  titleCard: {
     borderRadius: 15,
-    paddingHorizontal: 10,
+    padding: 10,
+    marginHorizontal: 15,
+    elevation: 3,
   },
-  // Estilos adicionales para las secciones
+  sectionCard: {
+    borderRadius: 15,
+    padding: 15,
+    margin: 15,
+    elevation: 3,
+  },
   sectionTitle: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: "bold",
-    color: "#1D1A1B", // Títulos en un color oscuro
-    marginBottom: 10,
     textAlign: "center",
   },
-  descriptionContainer: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3, // Sombra suave
+  divider: {
+    marginTop: 15,
+    marginHorizontal: 15,
   },
 });
 

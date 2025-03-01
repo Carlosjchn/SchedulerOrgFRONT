@@ -9,9 +9,10 @@ const apiClient = {
     // Get stored auth token
     const auth = await AsyncStorage.getItem('auth');
     const token = auth ? JSON.parse(auth).token : null;
-
+    //'ngrok-skip-browser-warning': 'true',
     const defaultHeaders = {
       'Content-Type': 'application/json',
+      'ngrok-skip-browser-warning': 'true',
       ...(token && { Authorization: `Bearer ${token}` })
     };
 

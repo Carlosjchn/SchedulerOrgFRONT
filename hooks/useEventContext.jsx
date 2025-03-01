@@ -1,43 +1,47 @@
-import { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
-// Creamos un contexto para los eventos
 const EventContext = createContext();
 
-// Proveedor de contexto
 export const EventProvider = ({ children }) => {
-  const [events, setEvents] = useState({});
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [dots, setDots] = useState({});  // Estado para almacenar los días con puntos
+  const [events, setEvents] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
-  // Función para agregar un evento a un día
-  const addEvent = (date, event) => {
-    setEvents((prevEvents) => {
-      const newEvents = { ...prevEvents };
-      if (!newEvents[date]) {
-        newEvents[date] = [];
-      }
-      newEvents[date].push(event);
-
-      // Actualizar los días con puntos
-      const newDots = { ...dots };
-      newDots[date] = [{ key: 'event', color: 'red', selectedDotColor: 'blue' }];
-      setDots(newDots);
-
-      return newEvents;
-    });
+  const addEvent = (event) => {
+    setEvents([...events, event]);
   };
 
-  // Función para seleccionar una fecha
-  const selectDate = (date) => {
-    setSelectedDate(date);
+  const updateEvent = (updatedEvent) => {
+    setEvents(events.map(event => 
+      event.id === updatedEvent.id ? updatedEvent : event
+    ));
+  };
+
+  const deleteEvent = (eventId) => {
+    setEvents(events.filter(event => event.id !== eventId));
+  };
+
+  const selectEvent = (event) => {
+    setSelectedEvent(event);
   };
 
   return (
-    <EventContext.Provider value={{ events, selectedDate, selectDate, addEvent, dots }}>
+    <EventContext.Provider value={{
+      events,
+      selectedEvent,
+      addEvent,
+      updateEvent,
+      deleteEvent,
+      selectEvent
+    }}>
       {children}
     </EventContext.Provider>
   );
 };
 
-// Hook para usar el contexto
-export const useEventContext = () => useContext(EventContext);
+export const useEvent = () => {
+  const context = useContext(EventContext);
+  if (!context) {
+    throw new Error('useEvent must be used within an EventProvider');
+  }
+  return context;
+};

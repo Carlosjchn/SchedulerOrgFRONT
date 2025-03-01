@@ -25,7 +25,6 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    
     paddingHorizontal: 10,
   },
   longText: {
@@ -38,13 +37,6 @@ const styles = StyleSheet.create({
   smallImage: {
     width: 150,
     height: 150,
-    backgroundColor: "#E5E5E5",
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
   },
   boldText: {
     fontWeight: "bold",

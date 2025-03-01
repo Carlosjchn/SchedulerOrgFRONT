@@ -1,37 +1,44 @@
 import { Platform } from 'react-native';
 
-const API_CONFIG = {
+const CONFIG = {
   port: 8080,
   webPort: 8081,
+  baseIp: '192.168.1.135:'
+};
+// http://${CONFIG.baseIp}${CONFIG.port}
+const getBaseUrl = () => {
+  if (Platform.OS === 'web') {
+    return `https://61bf-86-127-227-162.ngrok-free.app/api`;
+  }
+  return `https://61bf-86-127-227-162.ngrok-free.app/api`;
+};
+
+const API_CONFIG = {
+  port: CONFIG.port,
+  webPort: CONFIG.webPort,
+  baseIp: CONFIG.baseIp,
+  getBaseUrl,
   
-  getBaseUrl : () => {
-    if (Platform.OS === 'web') {
-      return 'http://localhost:' + port + '/api';
-    } else if (Platform.OS === 'android') {
-      return 'http://10.0.2.2:' + port + '/api';
-    } else {
-      return 'http://192.168.41.246:' + port + '/api';
-    }
-  },
-  
-  // CORS Configuration
-  corsConfig : {
+  corsConfig: {
     origin: [
-      'http://localhost:' + port,
-      'http://localhost:' + webPort,
-      'http://192.168.1.10:' + port,
-      'http://10.0.2.2:' + port
+      `http://localhost:${CONFIG.port}`,
+      `http://localhost:${CONFIG.webPort}`,
+      `http://${CONFIG.baseIp}:${CONFIG.port}`,
+      `http://10.0.2.2:${CONFIG.port}`,
+      `https://61bf-86-127-227-162.ngrok-free.app`,
+      
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'],
     exposedHeaders: ['Access-Control-Allow-Origin'],
     credentials: true,
-    maxAge: 86400 // 24 hours
+    maxAge: 86400
   },
 
   endpoints: {
     auth: {
-      login: 'auth/login'
+      login: 'auth/login',
+      register: 'auth/register'
     },
     users: {
       getAll: 'usuarios/all',
@@ -55,4 +62,5 @@ const API_CONFIG = {
   }
 };
 
+export { getBaseUrl };
 export default API_CONFIG;

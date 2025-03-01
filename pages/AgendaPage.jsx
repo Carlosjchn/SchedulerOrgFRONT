@@ -1,9 +1,25 @@
 import React from "react";
 import { StyleSheet, SafeAreaView } from "react-native";
-import Agenda from "../components/Agenda.jsx";
+import Agenda from "../components/agenda/Agenda"; // Updated path
 import { EventProvider } from "../hooks/useEventContext.jsx";
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
+import { useSchedules } from '../hooks/useSchedules';
 
-const PageAgenda = () => {
+const AgendaPage = () => {
+  const { schedules, loading, error, getUserSchedules } = useSchedules();
+
+  useFocusEffect(
+    useCallback(() => {
+      console.log('Calendar page focused - Reloading schedules...');
+      getUserSchedules();
+
+      return () => {
+        console.log('Calendar page unfocused');
+      };
+    }, [])
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <EventProvider>
@@ -20,8 +36,8 @@ const styles = StyleSheet.create({
   },
   container: {
     flexGrow: 1,
-    padding: 20, // Adds some padding to the ScrollView content
+    padding: 20,
   },
 });
 
-export default PageAgenda;
+export default AgendaPage;
