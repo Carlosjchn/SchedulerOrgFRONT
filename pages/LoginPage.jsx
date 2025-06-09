@@ -1,14 +1,31 @@
 import React from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import LoginForm from '../components/login/LoginForm';
 import AppLogo from '../components/Logo';
 import { Divider } from '@rneui/themed';
 import { useTheme } from '../hooks/useThemeContext';
+import { useAuth } from '../hooks/useAuthContext';
 import { lightTheme, darkTheme } from '../config/theme';
 
 const LoginPage = () => {
   const { isDarkMode } = useTheme();
+  const { isInitialized, loading } = useAuth();
   const theme = isDarkMode ? darkTheme : lightTheme;
+
+  const showLoadingScreen = loading && !isInitialized;
+
+  if (showLoadingScreen) {
+    return (
+      <View style={[styles.container, styles.loadingContainer, { backgroundColor: theme.background }]}>
+        <AppLogo width={100} height={100} full={true}/>
+        <ActivityIndicator 
+          size="large" 
+          color={theme.primary} 
+          style={styles.loadingSpinner}
+        />
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -33,6 +50,13 @@ const LoginPage = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingSpinner: {
+    marginTop: 20,
   },
   contentContainer: {
     flex: 1,

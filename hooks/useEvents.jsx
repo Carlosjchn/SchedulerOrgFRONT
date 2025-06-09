@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import apiClient from '../services/apiClient';
 import { useAuth } from './useAuthContext';
+import API_CONFIG from '../config/apiConfig';
 
 export const useSchedules = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [schedules, setSchedules] = useState({});
-  const { user } = useAuth();
+  const { user, getDecodedUser } = useAuth();
+
   const formatSchedulesForAgenda = (rawSchedules) => {
     const formattedSchedules = {};
     
@@ -27,15 +29,21 @@ export const useSchedules = () => {
     });
     return formattedSchedules;
   };
-  const getUserSchedules = async () => {
+
+  const getUserSchedules = useCallback(async () => {
+    if (loading) return;
     setLoading(true);
     console.log('Fetching user schedules...');
     try {
-      if (!user?.token) {
-        throw new Error('No user token found');
+      if (!user?.userId) {
+        throw new Error('No user ID found');
       }
-      console.log('User token:', user.token);
-      const response = await apiClient.request(`horarios/idUsuario/${user.token}`);
+      const decryptedUser = await getDecodedUser(user.userId);
+      console.log('Using decoded user ID:', decryptedUser.userId);
+      
+      const response = await apiClient.request(
+        API_CONFIG.endpoints.events.getByUser(decryptedUser.userId)
+      );
       console.log('Raw API Response:', response);
       
       const formattedSchedules = formatSchedulesForAgenda(response);
@@ -51,11 +59,18 @@ export const useSchedules = () => {
       setLoading(false);
       console.log('Fetch completed');
     }
-  };
+  }, [user?.userId, loading, getDecodedUser]);
+
   const getSchedulesByMonth = async (month) => {
     setLoading(true);
     try {
-      const response = await apiClient.request(`horarios/mes/${month}`);
+      if (!user?.userId) {
+        throw new Error('No user ID found');
+      }
+      const decryptedUser = await getDecodedUser(user.userId);
+      const response = await apiClient.request(
+        API_CONFIG.endpoints.events.getByMonth(decryptedUser.userId, month)
+      );
       const formattedSchedules = formatSchedulesForAgenda(response);
       setSchedules(formattedSchedules);
       return formattedSchedules;
@@ -66,30 +81,34 @@ export const useSchedules = () => {
       setLoading(false);
     }
   };
-  // Add new createSchedule function
-  const createSchedule = async (date, startTime, endTime) => {
+
+  const createSchedule = async (date, startTime, endTime, title = 'Evento') => {
     setLoading(true);
     console.log('Creating schedule...');
     try {
-      if (!user?.token) {
-        throw new Error('No user token found');
+      if (!user?.userId) {
+        throw new Error('No user ID found');
       }
+      const decryptedUser = await getDecodedUser(user.userId);
+      console.log('Decrypted user info:', decryptedUser);
+      
       const scheduleData = {
+        titulo: title,
+        idUsuario: parseInt(decryptedUser.userId) || decryptedUser.userId,
         fecha: date,
         horaInicio: `${startTime}:00`,
-        horaFin: `${endTime}:00`,
-        usuarioAsociado: {
-          idUsuario: user.token
-        }
+        horaFin: `${endTime}:00`
       };
-      console.log('Schedule data:', scheduleData);
-      const response = await apiClient.request('horarios/crear', {
-        method: 'POST',
-        body: JSON.stringify(scheduleData)
-      });
+      console.log('Schedule data to send:', scheduleData);
+      const response = await apiClient.request(
+        API_CONFIG.endpoints.events.create,
+        {
+          method: 'POST',
+          body: JSON.stringify(scheduleData)
+        }
+      );
       console.log('Create schedule response:', response);
       
-      // Refresh schedules after creating new one
       await getUserSchedules();
       
       return response;
@@ -101,12 +120,13 @@ export const useSchedules = () => {
       setLoading(false);
     }
   };
+
   return {
     loading,
     error,
     schedules,
     getUserSchedules,
     getSchedulesByMonth,
-    createSchedule // Add the new function to the return object
+    createSchedule
   };
 };

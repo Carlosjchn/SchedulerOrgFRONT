@@ -1,3 +1,39 @@
+// Polyfills for crypto and other missing APIs in React Native
+import 'react-native-get-random-values';
+
+// Manual polyfills if needed
+if (typeof global.btoa === 'undefined') {
+  global.btoa = require('base-64').encode;
+}
+if (typeof global.atob === 'undefined') {
+  global.atob = require('base-64').decode;
+}
+
+// Make atob available globally for JWT decoding
+if (typeof atob === 'undefined') {
+  global.atob = require('base-64').decode;
+}
+
+// Minimal crypto polyfill for React Native
+if (typeof global.crypto === 'undefined' && typeof window === 'undefined') {
+  global.crypto = {
+    getRandomValues: (arr) => {
+      for (let i = 0; i < arr.length; i++) {
+        arr[i] = Math.floor(Math.random() * 256);
+      }
+      return arr;
+    },
+    // Basic subtle implementation (will not work for real crypto, but prevents errors)
+    subtle: {
+      importKey: () => Promise.reject(new Error('Crypto.subtle not available in this environment')),
+      encrypt: () => Promise.reject(new Error('Crypto.subtle not available in this environment')),
+      decrypt: () => Promise.reject(new Error('Crypto.subtle not available in this environment')),
+      sign: () => Promise.reject(new Error('Crypto.subtle not available in this environment')),
+      verify: () => Promise.reject(new Error('Crypto.subtle not available in this environment'))
+    }
+  };
+}
+
 import { Text, View, TouchableOpacity, StyleSheet, Platform, SafeAreaView } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from "@react-navigation/drawer";
@@ -6,6 +42,7 @@ import { AuthProvider } from "./hooks/useAuthContext";
 import { Divider } from "@rneui/themed";
 import DrawerNavigator from './navigation/DrawerNavigator';
 import { ThemeProvider } from "./hooks/useThemeContext";
+
 
 
 if (Platform.OS === 'web') {

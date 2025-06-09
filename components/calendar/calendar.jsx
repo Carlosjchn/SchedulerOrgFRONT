@@ -31,8 +31,7 @@ const CustomCalendar = ({ selectedDate, onDateSelect }) => {
   useFocusEffect(
     React.useCallback(() => {
       // Reset calendar state when screen is focused
-      return () => {
-      };
+      return () => {};
     }, [])
   );
 
@@ -42,6 +41,7 @@ const CustomCalendar = ({ selectedDate, onDateSelect }) => {
       markedDates={{
         [selectedDate]: { selected: true, selectedColor: theme.primary },
       }}
+      firstDay={1}
       theme={{
         backgroundColor: theme.card,
         calendarBackground: theme.card,
@@ -53,11 +53,14 @@ const CustomCalendar = ({ selectedDate, onDateSelect }) => {
         textDisabledColor: theme.disabled,
         arrowColor: theme.primary,
         monthTextColor: theme.text,
-        textMonthFontWeight: "bold",
+        textMonthFontWeight: "900",
         textDayFontSize: 16,
-        textMonthFontSize: 16,
-        textDayHeaderFontSize: 14,
+        textMonthFontSize: 20,
+        textDayHeaderFontSize: 14
       }}
+      showWeekNumbers={false}
+      enableSwipeMonths={true}
+      monthFormat={"MMMM yyyy"}
     />
   );
 };

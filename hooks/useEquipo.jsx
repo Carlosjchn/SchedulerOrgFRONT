@@ -1,17 +1,22 @@
 import { useState } from 'react';
 import apiClient from '../services/apiClient';
 import { useAuth } from './useAuthContext';
+import API_CONFIG from '../config/apiConfig';
 
 export const useEquipo = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [teamData, setTeamData] = useState(null);
   const [allTeams, setAllTeams] = useState([]);
+  const { getDecodedUser } = useAuth();
 
   const getTeamByUserId = async (userId) => {
     setLoading(true);
     try {
-      const response = await apiClient.request(`equipos/usuario/${userId}`);
+              const decryptedUser = await getDecodedUser(userId);
+      const response = await apiClient.request(
+        API_CONFIG.endpoints.teams.getByUserId(decryptedUser.userId)
+      );
       
       if (response) {
         const formattedTeam = {
@@ -20,11 +25,17 @@ export const useEquipo = () => {
           tipo: response.tipo,
           horaInicioAct: response.horaInicio,
           horaFinAct: response.horaFin,
-          miembros: response.usuarios?.map(user => ({
-            nombre: user.nombre,
-            email: user.email
-          })) || []
+          miembros: await Promise.all((response.usuarios || []).map(async user => {
+            const decryptedMember = await getDecodedUser(user.idUsuario);
+            return {
+              idUsuario: decryptedMember.userId,
+              nombre: user.nombre || decryptedMember.userName,
+              email: user.email,
+              userType: decryptedMember.userType
+            };
+          }))
         };
+        console.log('Formatted team:', formattedTeam);
         setTeamData(formattedTeam);
         return formattedTeam;
       }
@@ -41,12 +52,25 @@ export const useEquipo = () => {
   const getAllTeams = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.request('equipos/all');
+      const response = await apiClient.request(API_CONFIG.endpoints.teams.getAll);
       console.log('All teams response:', response);
       
       if (Array.isArray(response)) {
-        setAllTeams(response);
-        return response;
+        // Decrypt and enrich all user data in the teams
+        const decryptedTeams = await Promise.all(response.map(async team => ({
+          ...team,
+          usuarios: await Promise.all((team.usuarios || []).map(async user => {
+            const decryptedMember = await getDecodedUser(user.idUsuario);
+            return {
+              ...user,
+              idUsuario: decryptedMember.userId,
+              nombre: user.nombre || decryptedMember.userName,
+              userType: decryptedMember.userType
+            };
+          }))
+        })));
+        setAllTeams(decryptedTeams);
+        return decryptedTeams;
       }
       setAllTeams([]);
       return [];

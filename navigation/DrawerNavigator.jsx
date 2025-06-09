@@ -3,10 +3,10 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 import { TouchableOpacity } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Inicio from "../pages/Inicio";
-import CalendarPage from "../pages/AgendaPage";
+import CalendarPage from "../pages/CalendarPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
-import CrearCalendarioPage from "../pages/CrearCalendarioPage";
+import CrearEventoPage from "../pages/CrearEventoPage";
 import CustomDrawerContent from "./CustomDrawerContent";
 import AppLogo from "../components/Logo";
 import PerfilPage from "../pages/PerfilPage";
@@ -14,6 +14,8 @@ import ConfiguracionPage from "../pages/ConfiguracionPage";
 import EquipoPage from "../pages/EquipoPage";
 import { useTheme } from '../hooks/useThemeContext';
 import { lightTheme, darkTheme } from '../config/theme';
+import TeamMembersSelectionPage from "../pages/TeamMembersSelectionPage";
+import WeeklySchedulePage from "../pages/WeeklySchedulePage";
 
 const Drawer = createDrawerNavigator();
 
@@ -91,6 +93,7 @@ const DrawerNavigator = () => {
           ),
         }}
       />
+
       <Drawer.Screen
         name="Perfil"
         component={PerfilPage}
@@ -100,6 +103,7 @@ const DrawerNavigator = () => {
           ),
         }}
       />
+
       <Drawer.Screen
         name="Equipo"
         component={EquipoPage}
@@ -110,14 +114,37 @@ const DrawerNavigator = () => {
         }}
       />
       <Drawer.Screen
-        name="Crear Horario"
-        component={CrearCalendarioPage}
+        name="Crear Evento"
+        component={CrearEventoPage}
         options={{
           drawerIcon: ({ color }) => (
             <Icon name="add-circle" size={24} color={color} />
           ),
         }}
       />
+
+      <Drawer.Screen
+        name="Crear Calendario"
+        component={TeamMembersSelectionPage}
+        options={{
+          drawerIcon: ({ color }) => (
+            <Icon name="group-add" size={24} color={color} />
+          ),
+        }}
+      />
+
+      <Drawer.Screen
+        name="WeeklySchedule"
+        component={WeeklySchedulePage}
+        options={{
+          drawerLabel: "Horario Semanal",
+          drawerIcon: ({ color }) => (
+            <Icon name="schedule" size={24} color={color} />
+          ),
+          drawerItemStyle: { display: 'none' }
+        }}
+      />
+
       <Drawer.Screen
         name="Calendario"
         component={CalendarPage}

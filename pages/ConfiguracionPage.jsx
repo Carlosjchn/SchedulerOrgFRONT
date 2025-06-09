@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Card, Text, Icon, Switch, Divider } from '@rneui/themed';
 import { useAuth } from '../hooks/useAuthContext';
@@ -7,11 +7,26 @@ import { lightTheme, darkTheme } from '../config/theme';
 import { useNavigation } from '@react-navigation/native';
 import TermsModal from '../components/configuracion/TermsModal';
 import LocationPrivacy from '../components/configuracion/LocationPrivacy';
-import { configurePushNotifications, scheduleLocalNotification } from '../utils/notificationHelper';
+import { initializeNotifications, showNotification } from '../utils/notificationHelper';
 
 const ConfiguracionPage = () => {
   const [pushEnabled, setPushEnabled] = useState(false);
   const [emailEnabled, setEmailEnabled] = useState(false);
+  const [termsVisible, setTermsVisible] = useState(false);
+  const navigation = useNavigation();
+  const { logout } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
+  const theme = isDarkMode ? darkTheme : lightTheme;
+
+  useEffect(() => {
+    // Check notification permissions on component mount
+    const checkNotificationPermissions = async () => {
+      const hasPermission = await initializeNotifications();
+      setPushEnabled(hasPermission);
+    };
+    checkNotificationPermissions();
+  }, []);
+
   const handleEmailToggle = (value) => {
     setEmailEnabled(value);
     if (value) {
@@ -21,13 +36,14 @@ const ConfiguracionPage = () => {
       );
     }
   };
+
   const handlePushToggle = async (value) => {
     if (value) {
-      const permissionGranted = await configurePushNotifications();
-      if (permissionGranted) {
+      const hasPermission = await initializeNotifications();
+      if (hasPermission) {
         setPushEnabled(true);
         // Test notification
-        await scheduleLocalNotification(
+        await showNotification(
           "Notificaciones Activadas",
           "Las notificaciones se han configurado correctamente"
         );
@@ -42,11 +58,6 @@ const ConfiguracionPage = () => {
       setPushEnabled(false);
     }
   };
-  const [termsVisible, setTermsVisible] = useState(false);
-  const navigation = useNavigation();
-  const { logout } = useAuth();
-  const { isDarkMode, toggleTheme } = useTheme();
-  const theme = isDarkMode ? darkTheme : lightTheme;
 
   const handleLogout = async () => {
     try {
@@ -59,6 +70,7 @@ const ConfiguracionPage = () => {
       console.error('Error during logout:', error);
     }
   };
+
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
       <Card containerStyle={[styles.sectionCard, { backgroundColor: theme.card }]}>

@@ -5,7 +5,39 @@ import { Divider } from "@rneui/themed";
 import { useAuth } from "../hooks/useAuthContext";
 
 const CustomDrawerContent = (props) => {
-  const { logout, user } = useAuth();
+  const { logout, user, getDecodedUser } = useAuth();
+  const [decodedUser, setDecodedUser] = React.useState(null);
+
+  React.useEffect(() => {
+    const decodeUserInfo = async () => {
+      if (user?.userName) {
+        try {
+          const decoded = await getDecodedUser(user.userName);
+          setDecodedUser(decoded);
+        } catch (error) {
+          console.warn('Error decoding user info, using fallback:', error.message);
+          // Fallback to original user data if decoding fails
+          setDecodedUser({ userName: user.userName || user.nombre });
+        }
+      } else if (user?.nombre) {
+        try {
+          const decoded = await getDecodedUser(user.nombre);
+          setDecodedUser(decoded);
+        } catch (error) {
+          console.warn('Error decoding user info, using fallback:', error.message);
+          // Fallback to original user data if decoding fails
+          setDecodedUser({ userName: user.nombre });
+        }
+      } else if (user) {
+        // If user exists but no userName or nombre, set a default
+        setDecodedUser({ userName: 'Usuario' });
+      }
+    };
+
+    if (user) {
+      decodeUserInfo();
+    }
+  }, [user, getDecodedUser]);
 
   const handleLogout = async () => {
     await logout();
@@ -20,7 +52,9 @@ const CustomDrawerContent = (props) => {
       {user && (
         <View style={styles.welcomeContainer}>
           <Text style={styles.welcomeText}>Bienvenido</Text>
-          <Text style={styles.userName}>{user.nombre}</Text>
+          <Text style={styles.userName}>
+            {decodedUser?.userName || user.userName || user.nombre || 'Usuario'}
+          </Text>
           <Divider width={4} color="#e63f32" style={styles.divider} />
         </View>
       )}

@@ -16,14 +16,15 @@ import { lightTheme, darkTheme } from '../../config/theme';
 
 const LoginForm = () => {
   const navigation = useNavigation();
-  const { login, loading, error, user } = useAuth();
+  const { login, loading, error, user, isInitialized } = useAuth();
   const { isDarkMode } = useTheme();
   const theme = isDarkMode ? darkTheme : lightTheme;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (user?.token) {
+    if (user?.userId) {
       navigation.reset({
         index: 0,
         routes: [{ name: 'Inicio' }],
@@ -32,17 +33,30 @@ const LoginForm = () => {
   }, [user, navigation]);
 
   const handleLogin = async () => {
+    if (!isInitialized) {
+      Alert.alert('Error', 'El sistema de autenticación se está inicializando. Por favor, espere un momento.');
+      return;
+    }
+
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert('Error', 'Por favor, complete todos los campos');
       return;
     }
     
+    setIsSubmitting(true);
     try {
-      await login(email, password);
+      const success = await login(email, password);
+      if (!success) {
+        Alert.alert('Error', 'Credenciales inválidas');
+      }
     } catch (err) {
-      Alert.alert('Error', err.message || 'Login failed');
+      Alert.alert('Error', err.message || 'Error al iniciar sesión');
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  const isLoading = loading || isSubmitting;
 
   return (
     <ScrollView
@@ -58,25 +72,31 @@ const LoginForm = () => {
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
+          editable={!isLoading}
         />
         <TextInput
           style={[styles.input, { backgroundColor: theme.input, color: theme.text, borderColor: theme.border }]}
-          placeholder="Constraseña"
+          placeholder="Contraseña"
           placeholderTextColor={theme.subText}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          editable={!isLoading}
         />
       </View>
 
       <View style={{ alignItems: "center" }}>
         {error && <Text style={[styles.errorText, { color: theme.error }]}>{error}</Text>}
         <TouchableOpacity 
-          style={[styles.button, loading && styles.buttonDisabled, { backgroundColor: loading ? theme.disabled : theme.primary }]} 
+          style={[
+            styles.button, 
+            isLoading && styles.buttonDisabled, 
+            { backgroundColor: isLoading ? theme.disabled : theme.primary }
+          ]} 
           onPress={handleLogin}
-          disabled={loading}
+          disabled={isLoading}
         >
-          {loading ? (
+          {isLoading ? (
             <ActivityIndicator color={theme.cardText} />
           ) : (
             <Text style={[styles.buttonText, { color: theme.cardText }]}>Iniciar Sesión</Text>
@@ -84,8 +104,14 @@ const LoginForm = () => {
         </TouchableOpacity>
         <View style={styles.registerContainer}>
           <Text style={[styles.registerText, { color: theme.subText }]}>¿No tienes cuenta? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-            <Text style={[styles.registerLink, { color: theme.primary }]}>Registrate</Text>
+          <TouchableOpacity 
+            onPress={() => navigation.navigate('Register')}
+            disabled={isLoading}
+          >
+            <Text style={[
+              styles.registerLink, 
+              { color: theme.primary, opacity: isLoading ? 0.7 : 1 }
+            ]}>Registrate</Text>
           </TouchableOpacity>
         </View>
       </View>
